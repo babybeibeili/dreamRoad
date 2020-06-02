@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -46,6 +47,14 @@ public class CodeGenerator {
         gc.setAuthor("beibei");
         gc.setFileOverride(false);// 是否覆盖同名文件，默认是false
         gc.setOpen(false);
+        gc.setActiveRecord(true);
+        gc.setEnableCache(false);// XML 二级缓存
+        gc.setBaseResultMap(true);// XML ResultMap
+        gc.setBaseColumnList(false);// XML columList
+
+        // 自定义文件命名，注意 %s 会自动填充表实体属性！
+        gc.setMapperName("%sMapper");
+        gc.setXmlName("%sMapper");
         // gc.setSwagger2(true); 实体属性 Swagger2 注解
         mpg.setGlobalConfig(gc);
 
@@ -72,13 +81,22 @@ public class CodeGenerator {
             }
         };
 
-        // 如果模板引擎是 freemarker
-        String templatePath = "/templates/mapper.xml.ftl";
-        // 如果模板引擎是 velocity
-        // String templatePath = "/templates/mapper.xml.vm";
 
+        String templatePath = "/templates/controller.java.ftl";
         // 自定义输出配置
         List<FileOutConfig> focList = new ArrayList<>();
+        // 自定义配置会被优先输出
+        focList.add(new FileOutConfig(templatePath) {
+            @Override
+            public String outputFile(TableInfo tableInfo) {
+                // 自定义输出文件名 + pc.getModuleName()
+                String expand = projectPath + "/src/main/java/com/dream/road/" +pc.getModuleName() + "/" + "controller";
+                String entityFile = String.format((expand + File.separator + "%s" + ".java"), tableInfo.getControllerName());
+                return entityFile;
+            }
+        });
+
+        templatePath = "/templates/mapper.xml.ftl";
         // 自定义配置会被优先输出
         focList.add(new FileOutConfig(templatePath) {
             @Override
@@ -88,35 +106,22 @@ public class CodeGenerator {
                         + "/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
             }
         });
-        /*
-        cfg.setFileCreate(new IFileCreate() {
-            @Override
-            public boolean isCreate(ConfigBuilder configBuilder, FileType fileType, String filePath) {
-                // 判断自定义文件夹是否需要创建
-                checkDir("调用默认方法创建的目录，自定义目录用");
-                if (fileType == FileType.MAPPER) {
-                    // 已经生成 mapper 文件判断存在，不想重新生成返回 false
-                    return !new File(filePath).exists();
-                }
-                // 允许生成模板文件
-                return true;
-            }
-        });
-        */
+
         cfg.setFileOutConfigList(focList);
         mpg.setCfg(cfg);
 
         // 配置模板
-        //TemplateConfig templateConfig = new TemplateConfig();
+        TemplateConfig templateConfig = new TemplateConfig();
 
         // 配置自定义输出模板
         //指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别
-        // templateConfig.setEntity("templates/entity2.java");
-        // templateConfig.setService();
-        // templateConfig.setController();
+//        templateConfig.setEntity("templates/entity2.java");
+//        templateConfig.setService("");
+//        templateConfig.setController("");
 
-//        templateConfig.setXml(null);
-//        mpg.setTemplate(templateConfig);
+        templateConfig.setXml(null);
+        templateConfig.setController(null);
+        mpg.setTemplate(templateConfig);
 
         // 策略配置
         StrategyConfig strategy = new StrategyConfig();
@@ -131,8 +136,8 @@ public class CodeGenerator {
         strategy.setSuperEntityColumns("id");
         strategy.setInclude(scanner("表名，多个英文逗号分割").split(","));
         strategy.setControllerMappingHyphenStyle(true);
-        strategy.setTablePrefix(new String[] { "sys_" });
-//        strategy.setTablePrefix(pc.getModuleName() + "_");
+        strategy.setTablePrefix(new String[]{"sys_"});
+        strategy.setTablePrefix(pc.getModuleName() + "_");
         mpg.setStrategy(strategy);
         mpg.setTemplateEngine(new FreemarkerTemplateEngine());
         mpg.execute();
