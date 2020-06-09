@@ -45,7 +45,7 @@ public class CodeGenerator {
         String projectPath = System.getProperty("user.dir");
         gc.setOutputDir(projectPath + "/src/main/java");
         gc.setAuthor("beibei");
-        gc.setFileOverride(false);// 是否覆盖同名文件，默认是false
+        gc.setFileOverride(true);// 是否覆盖同名文件，默认是false
         gc.setOpen(false);
         gc.setActiveRecord(true);
         gc.setEnableCache(false);// XML 二级缓存
@@ -53,6 +53,7 @@ public class CodeGenerator {
         gc.setBaseColumnList(false);// XML columList
 
         // 自定义文件命名，注意 %s 会自动填充表实体属性！
+        gc.setServiceName("%sService");
         gc.setMapperName("%sMapper");
         gc.setXmlName("%sMapper");
         // gc.setSwagger2(true); 实体属性 Swagger2 注解
@@ -69,7 +70,7 @@ public class CodeGenerator {
 
         // 包配置
         PackageConfig pc = new PackageConfig();
-        pc.setModuleName(scanner("模块名"));
+        pc.setModuleName(null);//pc.setModuleName(scanner("模块名"));
         pc.setParent("com.dream.road");
         mpg.setPackageInfo(pc);
 
@@ -90,7 +91,10 @@ public class CodeGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 + pc.getModuleName()
-                String expand = projectPath + "/src/main/java/com/dream/road/" +pc.getModuleName() + "/" + "controller";
+                String expand = projectPath + "/src/main/java/com/dream/road/" + "controller";
+                if (pc.getModuleName() != null) {
+                    expand = projectPath + "/src/main/java/com/dream/road/" + pc.getModuleName() + "/" + "controller";
+                }
                 String entityFile = String.format((expand + File.separator + "%s" + ".java"), tableInfo.getControllerName());
                 return entityFile;
             }
@@ -102,8 +106,12 @@ public class CodeGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return projectPath + "/src/main/resources/mapper/" + pc.getModuleName()
-                        + "/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
+                String mapperXml = projectPath + "/src/main/resources/mapper/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
+                if (pc.getModuleName() != null) {
+                    mapperXml = projectPath + "/src/main/resources/mapper/" + pc.getModuleName()
+                            + "/" + tableInfo.getEntityName() + "Mapper" + StringPool.DOT_XML;
+                }
+                return mapperXml;
             }
         });
 
@@ -133,11 +141,13 @@ public class CodeGenerator {
         // 公共父类
         //strategy.setSuperControllerClass("你自己的父类控制器,没有就不用设置!");
         // 写于父类中的公共字段
-        strategy.setSuperEntityColumns("id");
+//        strategy.setSuperEntityColumns("id");
         strategy.setInclude(scanner("表名，多个英文逗号分割").split(","));
         strategy.setControllerMappingHyphenStyle(true);
-        strategy.setTablePrefix(new String[]{"sys_"});
-        strategy.setTablePrefix(pc.getModuleName() + "_");
+//        strategy.setTablePrefix(new String[]{"sys_"});
+//        strategy.setTablePrefix(pc.getModuleName() + "_");
+        strategy.setControllerMappingHyphenStyle(true);
+        strategy.setTablePrefix("sys_");
         mpg.setStrategy(strategy);
         mpg.setTemplateEngine(new FreemarkerTemplateEngine());
         mpg.execute();

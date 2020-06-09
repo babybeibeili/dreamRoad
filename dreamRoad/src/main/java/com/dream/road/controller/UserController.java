@@ -1,10 +1,10 @@
-package ${package.Controller};
+package com.dream.road.controller;
 
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import ${package.Service}.${table.serviceName};
-import ${package.Entity}.${entity};
+import com.dream.road.service.UserService;
+import com.dream.road.entity.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -14,42 +14,24 @@ import com.dream.road.core.Result;
 import com.dream.road.core.ResultGenerator;
 import java.util.List;
 import javax.annotation.Resource;
-<#if restControllerStyle>
 import org.springframework.web.bind.annotation.RestController;
-<#else>
-import org.springframework.stereotype.Controller;
-</#if>
-<#if superControllerClassPackage??>
-import ${superControllerClassPackage};
-</#if>
 
 /**
  * <p>
-    * ${table.comment!} 前端控制器
+    * 用户管理 前端控制器
     * </p>
  *
- * @author ${author}
- * @since ${date}
+ * @author beibei
+ * @since 2020-06-09
  * @version v1.0
  */
-<#if restControllerStyle>
-@Api(tags = {"${table.comment!}"})
+@Api(tags = {"用户管理"})
 @RestController
-<#else>
-@Controller
-</#if>
-@RequestMapping("<#if package.ModuleName??>/${package.ModuleName}</#if>/<#if controllerMappingHyphenStyle??>${controllerMappingHyphen}<#else>${table.entityPath}</#if>")
-<#if kotlin>
-class ${table.controllerName}<#if superControllerClass??> : ${superControllerClass}()</#if>
-<#else>
-    <#if superControllerClass??>
-public class ${table.controllerName} extends ${superControllerClass} {
-    <#else>
-public class ${table.controllerName} {
-    </#if>
+@RequestMapping("/user")
+public class UserController {
     private Logger logger = LoggerFactory.getLogger(getClass());
     @Resource
-    private ${table.serviceName} ${table.serviceName?uncap_first};
+    private UserService userService;
 
     /**
      * 查询分页数据
@@ -57,7 +39,7 @@ public class ${table.controllerName} {
     @ApiOperation(value = "查询分页数据")
     @RequestMapping(value = "/list")
     public Result findListByPage(@RequestParam(name = "pageNum", defaultValue = "1") int pageNum,@RequestParam(name = "pageSize", defaultValue = "20") int pageSize){
-    return ResultGenerator.genSuccessResult(${table.serviceName?uncap_first}.list());
+    return ResultGenerator.genSuccessResult(userService.list());
     }
 
 
@@ -66,8 +48,8 @@ public class ${table.controllerName} {
     */
     @ApiOperation(value = "根据id查询数据")
     @RequestMapping(value = "/getById")
-    public Result<${entity}> getById(@RequestParam("id") String id){
-    return ResultGenerator.genSuccessResult(${table.serviceName?uncap_first}.getById(id));
+    public Result<User> getById(@RequestParam("id") String id){
+    return ResultGenerator.genSuccessResult(userService.getById(id));
     }
 
     /**
@@ -75,7 +57,7 @@ public class ${table.controllerName} {
     */
     @ApiOperation(value = "新增数据")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public Result<${entity}> add(@RequestBody ${entity} ${entity?uncap_first}){
+    public Result<User> add(@RequestBody User user){
     return null;
     }
 
@@ -93,9 +75,8 @@ public class ${table.controllerName} {
     */
     @ApiOperation(value = "更新数据")
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public Result<${entity}> update(@RequestBody ${entity} ${entity?uncap_first}){
+    public Result<User> update(@RequestBody User user){
     return null;
     }
 
     }
-</#if>
